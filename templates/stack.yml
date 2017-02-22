@@ -3,7 +3,7 @@ Description: "Todobackend Stack"
 
 # Stack Parameters
 Parameters:
-  VpcId: 
+  VpcId:
     Type: "AWS::EC2::VPC::Id"
     Description: "The target VPC Id"
   SubnetId:
@@ -60,10 +60,10 @@ Resources:
       }
   EC2InstanceSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
-    Properties: 
+    Properties:
       GroupDescription: "todobackend-sg"
       VpcId: { "Ref": "VpcId" }
-      SecurityGroupIngress: 
+      SecurityGroupIngress:
         - IpProtocol: "tcp"
           FromPort: "8000"
           ToPort: "8000"
@@ -72,12 +72,12 @@ Resources:
           FromPort: "22"
           ToPort: "22"
           CidrIp: "0.0.0.0/0"
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: { "Fn::Join": ["", [ { "Ref": "AWS::StackName" }, "-instance-sg" ] ] }
   EC2InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
-    Properties: 
+    Properties:
       Path: "/"
       Roles: [ { "Ref": "EC2InstanceRole" } ]
   EC2InstanceRole:
@@ -94,8 +94,8 @@ Resources:
         ]
       }
       Path: "/"
-      ManagedPolicyArns: 
-        - "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"     
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
   DbInstance:
     Type: "AWS::RDS::DBInstance"
     Properties:
@@ -117,20 +117,20 @@ Resources:
           Value: { "Fn::Join": ["", [ { "Ref": "AWS::StackName" }, "-db" ] ] }
   DbSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
-    Properties: 
+    Properties:
       GroupDescription: "Todobackend DB Security Group"
       VpcId: { "Ref": "VpcId"}
       SecurityGroupIngress:
         - IpProtocol: "tcp"
           FromPort: "3306"
           ToPort: "3306"
-          SourceSecurityGroupId: { "Ref": "EC2InstanceSecurityGroup" }        
-  DbSubnetGroup: 
+          SourceSecurityGroupId: { "Ref": "EC2InstanceSecurityGroup" }
+  DbSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
     Properties:
       DBSubnetGroupDescription: "Todobackend DB Subnet Group"
       SubnetIds: { "Ref": "DbSubnets" }
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: { "Fn::Join": ["", [ { "Ref": "AWS::StackName" }, "-db-subnet-group" ] ] }
   ElasticLoadBalancer:
@@ -142,14 +142,14 @@ Resources:
         - LoadBalancerPort: "80"
           InstancePort: "8000"
           Protocol: "http"
-      HealthCheck: 
+      HealthCheck:
         Target: "HTTP:8000/todos"
         HealthyThreshold: "2"
         UnhealthyThreshold: "10"
         Interval: "30"
         Timeout: "5"
       Subnets: [ { "Ref": "SubnetId" } ]
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: { "Fn::Join": ["", [ { "Ref": "AWS::StackName" }, "-elb" ] ] }
   ElbSecurityGroup:
@@ -162,12 +162,12 @@ Resources:
           FromPort: "80"
           ToPort: "80"
           CidrIp: "0.0.0.0/0"
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: { "Fn::Join": ["", [ { "Ref": "AWS::StackName" }, "-elb-sg" ] ] }
   EcsCluster:
     Type: "AWS::ECS::Cluster"
-  TodobackendTaskDefinition: 
+  TodobackendTaskDefinition:
     Type: "AWS::ECS::TaskDefinition"
     Properties:
       ContainerDefinitions:
@@ -194,7 +194,7 @@ Resources:
             - "--master"
             - "--die-on-term"
         - Name: nginx
-          Image: jmenga/todobackend-nginx
+          Image: sajish/todobackend-nginx
           Memory: 300
           PortMappings:
             - ContainerPort: "8000"
@@ -202,7 +202,7 @@ Resources:
           MountPoints:
             - ContainerPath: /var/www/todobackend
               SourceVolume: webroot
-      Volumes: 
+      Volumes:
         - Name: webroot
           Host: 
             SourcePath: /ecs/webroot
@@ -227,7 +227,7 @@ Resources:
               SourceVolume: webroot
       Volumes:
         - Name: webroot
-          Host: 
+          Host:
             SourcePath: /ecs/webroot
   TodobackendService:
     Type: "AWS::ECS::Service"
@@ -256,12 +256,12 @@ Resources:
         ]
       }
       Path: "/"
-      ManagedPolicyArns: 
+      ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole
 
 # Stack Outputs
 Outputs:
-  ElbDomainName: 
+  ElbDomainName:
     Description: "Public DNS name of Elastic Load Balancer"
     Value: { "Fn::GetAtt": [ "ElasticLoadBalancer", "DNSName" ] }
   EcsCluster:
@@ -273,6 +273,6 @@ Outputs:
   TodobackendAdhocTaskDefinition:
     Description: "Amazon Resource Name (ARN) of Todobackend Adhoc Task Definition"
     Value: { "Ref": "TodobackendAdhocTaskDefinition" }
-  TodobackendService: 
+  TodobackendService:
     Description: "Amazon Resource Name (ARN) of Todobackend Service"
     Value: { "Ref": "TodobackendService" }
